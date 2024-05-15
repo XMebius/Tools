@@ -15,7 +15,7 @@ PeriodicTask::~PeriodicTask() {
 }
 
 void PeriodicTask::start() {
-    if(!_running){
+    if(_running){
         printf("[Periodic] Tried to start %s but it's already running\n", _taskName.c_str());
         return;
     }
@@ -32,7 +32,7 @@ void PeriodicTask::stop() {
     _running = false;
     printf("[Periodic] Waiting for stopping %s\n", _taskName.c_str());
     _taskThread.join();
-    printf("[Periodic] Stopped %s\n", _taskName.c_str());
+    printf("[Periodic] Done! %s\n", _taskName.c_str());
     cleanup();
 }
 
@@ -40,6 +40,7 @@ void PeriodicTask::stop() {
  * call the run() function every _taskPeriod seconds
  */
 void PeriodicTask::loopFunction() {
+    printf("enter loop function\n");
     auto timerFd = timerfd_create(CLOCK_MONOTONIC, 0);
     int seconds = (int)_taskPeriod;
     int nanoseconds = (int)(1e9 * std::fmod(_taskPeriod, 1.f));
@@ -83,6 +84,7 @@ void PeriodicTaskManager::addTask(PeriodicTask *task) {
 }
 
 void PeriodicTaskManager::startAll() {
+    printf("[PeriodicTaskManager] Starting all tasks\n");
     for(auto task : _tasks){
         task->start();
     }

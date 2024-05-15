@@ -13,6 +13,7 @@
 #include <cmath>
 #include <sys/timerfd.h>
 #include <unistd.h>
+#include <functional>
 #include "Timer.h"
 
 class PeriodicTaskManager;
@@ -23,14 +24,20 @@ class PeriodicTaskManager;
 class PeriodicTask {
 public:
     PeriodicTask(std::string name, float period, PeriodicTaskManager *manager);
+
     virtual ~PeriodicTask();
 
     virtual void init() = 0;
+
     virtual void run() = 0;
+
     virtual void cleanup() = 0;
 
     void start();
+
     void stop();
+
+    std::string getName() { return _taskName; }
 
 private:
     void loopFunction();
@@ -52,12 +59,38 @@ public:
     ~PeriodicTaskManager();
 
     void addTask(PeriodicTask *task);
+
     void startAll();
+
     void stopAll();
 
 private:
     std::vector<PeriodicTask *> _tasks;
 };
+
+class PeriodicFunction : public PeriodicTask {
+public:
+    PeriodicFunction(
+            std::string name, float period, PeriodicTaskManager *manager, std::function<void()> function)
+            : PeriodicTask(name, period, manager), _function(function) {}
+    ~PeriodicFunction(){}
+
+    void run() {
+        _function();
+    }
+
+    void init() {
+        printf("init %s \n", getName().c_str());
+    }
+
+    void cleanup() {}
+
+private:
+//    void (*_function)() = nullptr;
+//    PeriodicTask *_task = nullptr;
+    std::function<void()> _function;
+};
+
 
 
 #endif //TOOLS_PERIODICTASK_H
